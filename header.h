@@ -1,3 +1,3 @@
 void sort(char* array[], int lenght);
 
-char* input();
+char* Gets(FILE *fp);

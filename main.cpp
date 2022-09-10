@@ -10,14 +10,11 @@
 int main()
 {
     FILE* fp = fopen("hamlet.txt", "r");
-    char text[MAXLINES][MAXLENGHT];
     char* array[MAXLINES] = {};
-
-    for (int i = 0; fgets(text[i], MAXLENGHT, fp) != NULL; i++){}
 
     for (int i = 0; i < MAXLINES; i++)
     {
-        array[i] = text[i];
+        array[i] = Gets(fp);
     }
 
     sort(array, MAXLINES);

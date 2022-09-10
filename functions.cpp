@@ -5,6 +5,7 @@
 #include "header.h"
 
 #define MAXLINES 4459
+#define MAXLENGHT 100
 
 void sort(char* array[], int lenght)
 {
@@ -18,7 +19,13 @@ void sort(char* array[], int lenght)
                 array[j] = array[j+1];
                 array[j+1] = temp;
             }
-
         }
     }
+}
+
+char* Gets(FILE *fp)
+{
+    char str[MAXLENGHT] = "";
+    fgets(str, MAXLENGHT - 1, fp);
+    return strdup(str);
 }
