@@ -26,17 +26,18 @@ int main()
 
     Input(text, size, fp);
 
+    fclose(fp);
+
     int nlines = line_counter(text, size);
 
     struct string Strings[nlines];
 
-    char** LinesPtr = pointers_array(text, nlines, size);
+    Strings_Separator(text, nlines, size, Strings);
 
-    qsort(LinesPtr, nlines, sizeof(LinesPtr[0]), &cmp);
+    qsort(Strings, nlines, sizeof(Strings[0]), &reverse_cmp);
 
     for (int i = 0; i < nlines; i++)
-    {
-        printf("%s\n", LinesPtr[i]);
-    }
+        printf("%s\n", Strings[i].ptr);
+
     return 0;
 }
