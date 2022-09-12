@@ -1,24 +1,42 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "header.h"
-
-#define MAXLINES 4459
-#define MAXLENGHT 100
 
 int main()
 {
     FILE* fp = fopen("hamlet.txt", "r");
-    char* array[MAXLINES] = {};
 
-    for (int i = 0; i < MAXLINES; i++)
+    if (fp == NULL)
     {
-        array[i] = Gets(fp);
+        printf("Error when reading a file");
+        exit(1);
     }
 
-    sort(array, MAXLINES);
+    long size = file_size(fp);
+    char* text = (char*) malloc(sizeof(char) * size);
 
-    for (int i = 0; i < MAXLINES; i++)
-        printf("%s", array[i]);
+    if (text == NULL)
+    {
+        printf("Error with memory");
+        exit(2);
+    }
+
+    Input(text, size, fp);
+
+    int nlines = line_counter(text, size);
+
+    struct string Strings[nlines];
+
+    char** LinesPtr = pointers_array(text, nlines, size);
+
+    qsort(LinesPtr, nlines, sizeof(LinesPtr[0]), &cmp);
+
+    for (int i = 0; i < nlines; i++)
+    {
+        printf("%s\n", LinesPtr[i]);
+    }
+    return 0;
 }

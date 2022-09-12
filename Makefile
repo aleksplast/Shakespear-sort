@@ -1,5 +1,5 @@
 CC := g++
-SRC := main.cpp functions.cpp
+SRC := main.cpp text-sort.cpp
 SRC_TEST := onegin.cpp test.cpp
 DIR := C:\Users\USER\Documents\Onegin-sort
 
