@@ -14,11 +14,6 @@ long file_size(FILE *fp)
     return size;
 }
 
-char* Input(char* buffer, long size, FILE *fp)
-{
-    fread(buffer, 1, size, fp);
-}
-
 int line_counter(char* buffer, long size)
 {
     int number_of_lines = 0;
@@ -27,7 +22,8 @@ int line_counter(char* buffer, long size)
     {
         if (*(buffer + i) == '\n')
         {
-            number_of_lines++;
+            if (*(buffer + i - 1) != '\0')
+                number_of_lines++;
             *(buffer + i) = '\0';
         }
     }
@@ -35,22 +31,25 @@ int line_counter(char* buffer, long size)
     return number_of_lines;
 }
 
-void Strings_Separator(char* buffer, int nlines, long size, struct string Strings[])
+void Strings_Separator(char* buffer, long size, struct string Strings[])
 {
     bool flag_in = false;
     int counter = 1;
     char* prev = buffer;
 
-    Strings[0].ptr = buffer;
-
     for (int i = 0; i < size; i++)
     {
         if (*(buffer + i) == '\0')
         {
-            Strings[counter-1].length = buffer + i - prev;
-            Strings[counter].ptr = buffer + i + 1;
-            prev = buffer + i;
-            counter++;
+            if (*(buffer + i - 1) != '\0')
+            {
+                Strings[counter-1].length = buffer + i - prev;
+                Strings[counter-1].ptr = prev + 1;
+                prev = buffer + i;
+                counter++;
+            }
+            else if (*(buffer + i - 1) == '\0')
+                prev = buffer + i;
         }
     }
 }
@@ -103,6 +102,39 @@ int reverse_cmp(const void* struct1ptr, const void* struct2ptr)
         return 1;
     else
         return -1;
+}
+
+void FileWrite (char* text, struct string Strings[], int nlines, long size)
+{
+    FILE* f1 = fopen("Alphabet.txt", "w");
+
+    qsort(Strings, nlines, sizeof(Strings[0]), &cmp);
+
+    for (int i = 0; i < nlines; i++)
+        fprintf(f1, "%s\n", Strings[i].ptr);
+
+    fclose(f1);
+
+    FILE* f2 = fopen("Rhymes.txt", "w");
+
+    qsort(Strings, nlines, sizeof(Strings[0]), &reverse_cmp);
+
+    for (int i = 0; i < nlines; i++)
+        fprintf(f1, "%s\n", Strings[i].ptr);
+
+    fclose(f2);
+
+    FILE* f3 = fopen("Origin.txt", "w");
+
+    for (int i = 0; i < size; i++)
+    {
+        if (*(text + i) == '\0')
+            putc('\n', f3);
+        else
+            putc(*(text+i), f3);
+    }
+
+    fclose(f3);
 }
 
 
