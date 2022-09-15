@@ -7,22 +7,29 @@
 
 int main()
 {
-    FILE* fp = fopen("hamlet.txt", "r");
+    const char* rhymes = "Rhymes.txt";
+    const char* alphabet = "Alphabet.txt";
+    const char* poem = "hamlet.txt";
+    const char* origin = "Origin.txt";
 
-    long size = file_size(fp);
-    char* text = (char*) malloc(sizeof(char) * size);
+    struct poem text = TextReader(poem);
 
-    fread(text, 1, size, fp);
+    struct string* Strings = (struct string*) malloc(sizeof(struct string) * text.nlines);
 
-    fclose(fp);
+    Strings_Separator(text.ptr, text.size, text.nlines, Strings);
 
-    int nlines = line_counter(text, size);
+    qsort(Strings, text.nlines, sizeof(Strings[0]), &cmp);
 
-    struct string Strings[nlines];
+    FileWrite(alphabet, Strings, text.nlines);
 
-    Strings_Separator(text, size, Strings);
+    qsort(Strings, text.nlines, sizeof(Strings[0]), &reverse_cmp);
 
-    FileWrite(text, Strings, nlines, size);
+    FileWrite(rhymes, Strings, text.nlines);
+
+    OriginWrite(origin, text.ptr, text.size);
+
+    free(text.ptr);
+    free(Strings);
 
     return 0;
 }
