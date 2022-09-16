@@ -1,6 +1,6 @@
 CC := g++
 SRC := main.cpp text-sort.cpp
-SRC_TEST := onegin.cpp test.cpp
+SRC_TEST := tests.cpp my_qsort.cpp text-sort.cpp
 DIR := C:\Users\USER\Documents\Onegin-sort
 
 .PHONY: all clean

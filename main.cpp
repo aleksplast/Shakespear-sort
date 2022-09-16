@@ -3,30 +3,39 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "header.h"
+#include "text-sort.h"
+#include "my_qsort.h"
 
-int main()
+int main(int argc, char* argv[])
 {
     const char* rhymes = "Rhymes.txt";
     const char* alphabet = "Alphabet.txt";
-    const char* poem = "hamlet.txt";
     const char* origin = "Origin.txt";
 
-    struct poem text = TextReader(poem);
+    char* output = NULL;
+    char* input = NULL;
 
-    struct string* Strings = (struct string*) malloc(sizeof(struct string) * text.nlines);
+    int status = 0;
 
-    Strings_Separator(text.ptr, text.size, text.nlines, Strings);
+    Arguments(argc, argv, &input, &output);
+
+    struct poem text = {NULL, 0, 0};
+
+    TextReader(input, &text);
+
+    struct line* Strings = NULL;
+
+    Strings_Separator(text.ptr, text.size, text.nlines, &Strings);
 
     qsort(Strings, text.nlines, sizeof(Strings[0]), &cmp);
 
-    FileWrite(alphabet, Strings, text.nlines);
+    FileWrite(output, Strings, text.nlines);
 
-    qsort(Strings, text.nlines, sizeof(Strings[0]), &reverse_cmp);
+    my_qsort(Strings, text.nlines, sizeof(Strings[0]), &reverse_cmp);
 
-    FileWrite(rhymes, Strings, text.nlines);
+    FileWrite(output, Strings, text.nlines);
 
-    OriginWrite(origin, text.ptr, text.size);
+    OriginWrite(output, text.ptr, text.size);
 
     free(text.ptr);
     free(Strings);
