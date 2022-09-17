@@ -3,17 +3,48 @@
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
+#include <sys\stat.h>
 
 #include "text-sort.h"
 
-long file_size(FILE *fp)
+int TextReader (const char* file, struct poem* text, const char* mode)
 {
+    FILE* fp = fopen(file, "r");
+
     assert(fp != NULL);
 
-    fseek(fp, 0, SEEK_END);
-    long size = ftell(fp);
-    rewind(fp);
-    return size;
+    if (fp == NULL)
+    {
+        return FILERROR;
+    }
+
+    (*text).size = FileSize(fp);
+    (*text).ptr = (char*) calloc((*text).size, sizeof(char));
+
+    assert((*text).ptr != NULL);
+
+    if ((*text).ptr == NULL)
+    {
+        return MEMERROR;
+    }
+
+    if (fread((*text).ptr, 1, (*text).size, fp) != (*text).size)
+        return INPUTERROR;
+
+    fclose(fp);
+
+    return NOERR;
+}
+
+long FileSize(FILE *fp)
+{
+    assert(fp != NULL);
+    struct stat buf;
+    fstat(fileno(fp), &buf);
+//    fseek(fp, 0, SEEK_END);
+//    long size = ftell(fp);
+//    rewind(fp);
+    return buf.st_size;
 }
 
 int line_counter(char* text, long size)
@@ -34,173 +65,44 @@ int line_counter(char* text, long size)
     return number_of_lines;
 }
 
-int Strings_Separator(char* text, long size, int nlines, struct line** Strings)
+int Strings_Separator(struct poem* text, const char end)
 {
-    *Strings = (struct line*) malloc(sizeof(struct line) * nlines);
+    (*text).nlines = line_counter((*text).ptr, (*text).size);
 
-    assert(text != NULL);
-    assert(Strings != NULL);
+    (*text).Strings = (struct line*) calloc((*text).nlines, sizeof(struct line));
 
-    if (*Strings == NULL)
+    assert((*text).ptr != NULL);
+    assert((*text).Strings != NULL);
+
+    if ((*text).Strings == NULL)
     {
-        return SEPARMEMERR;
+        return MEMERROR;
     }
 
     int counter = 1;
-    char* prev = text;
+    char* prev = (*text).ptr;
 
-    for (int i = 0; i < size && counter < nlines + 1; i++)
+    for (int i = 0; i < (*text).size && counter < (*text).nlines + 1; i++)
     {
-        if (*(text + i) == '\n')
+        if (*((*text).ptr + i) == '\n')
         {
-            *(text + i) = '\0';
-            if (*(text + i - 1) != '\0')
+            *((*text).ptr + i) = '\0';
+            if (*((*text).ptr + i - 1) != '\0')
             {
-                (*Strings)[counter-1].length = text + i - prev;
-                (*Strings)[counter-1].ptr = prev + 1;
-                prev = text + i;
+                ((*text).Strings)[counter-1].length = (*text).ptr + i - prev;
+                ((*text).Strings)[counter-1].ptr = prev + 1;
+                prev = (*text).ptr + i;
                 counter++;
             }
             else
-                prev = text + i;
+                prev = (*text).ptr + i;
         }
     }
 
     return NOERR;
 }
 
-int cmp(const void* struct1ptr, const void* struct2ptr)
-{
-    assert(struct1ptr != NULL);
-    assert(struct2ptr != NULL);
-
-    const struct line struct1 = *(const struct line*) struct1ptr;
-    const struct line struct2 = *(const struct line*) struct2ptr;
-
-    const char* str1 = struct1.ptr;
-    const char* str2 = struct2.ptr;
-
-    while(!(isalpha(*str1)))
-        str1++;
-
-    while(!(isalpha(*str2)))
-        str2++;
-
-    for( ; *str1 == *str2; str1++, str2++)
-    {
-        if (*str1 == '\0')
-            return 0;
-    }
-    if (*str1 > *str2)
-        return 1;
-    else
-        return -1;
-}
-
-int reverse_cmp(const void* struct1ptr, const void* struct2ptr)
-{
-    assert(struct1ptr != NULL);
-    assert(struct2ptr != NULL);
-
-    const struct line struct1 = *(const struct line*) struct1ptr;
-    const struct line struct2 = *(const struct line*) struct2ptr;
-
-    const char* str1 = struct1.ptr + struct1.length;
-    const char* str2 = struct2.ptr + struct2.length;
-
-    while(!(isalpha(*str1)))
-        str1--;
-
-    while(!(isalpha(*str2)))
-        str2--;
-
-    for( ; *str1 == *str2; str1--, str2--)
-    {
-        if (*str1 == '\0')
-            return 0;
-    }
-    if (*str1 > *str2)
-        return 1;
-    else
-        return -1;
-}
-
-int FileWrite (const char* file, struct line Strings[], int nlines)
-{
-    FILE* f = fopen(file, "a");
-
-    assert(f != NULL);
-    assert(Strings != NULL);
-
-    if (f == NULL)
-    {
-        return OUTPUTERR;
-    }
-
-    for (int i = 0; i < nlines; i++)
-        fprintf(f, "%s\n", Strings[i].ptr);
-
-    fclose(f);
-
-    return NOERR;
-}
-
-int OriginWrite(const char* file, char* text, long size)
-{
-    FILE* f = fopen(file, "a");
-
-    assert(f != NULL);
-    assert(text != NULL);
-
-    if (f == NULL)
-    {
-        return OUTPUTORERR;
-    }
-
-    for (int i = 0; i < size; i++)
-    {
-        if (*(text + i) == '\0')
-            putc('\n', f);
-        else
-            putc(*(text + i), f);
-    }
-
-    fclose(f);
-
-    return NOERR;
-}
-
-int TextReader (const char* file, struct poem* text)
-{
-    FILE* fp = fopen(file, "r");
-
-    assert(fp != NULL);
-
-    if (fp == NULL)
-    {
-        return INPUTERR;
-    }
-
-    (*text).size = file_size(fp);
-    (*text).ptr = (char*) malloc(sizeof(char) * (*text).size);
-
-    assert((*text).ptr != NULL);
-
-    if ((*text).ptr == NULL)
-    {
-        return INPUTMEMERR;
-    }
-
-    fread((*text).ptr, 1, (*text).size, fp);
-
-    (*text).nlines = line_counter((*text).ptr, (*text).size);
-
-    fclose(fp);
-
-    return NOERR;
-}
-
-void my_qsort(void* base, int nmemb, size_t size, int (*CompFunc)(const void*, const void*))
+void my_qsort_r(void* base, int nmemb, size_t size, int (*CompFunc)(const void*, const void*, void*), void* arg)
 {
     assert(base != NULL);
 
@@ -216,7 +118,7 @@ void my_qsort(void* base, int nmemb, size_t size, int (*CompFunc)(const void*, c
 
     for (int i = 1; i < nmemb; i++)
     {
-        if ((*CompFunc) (base + i * size, base) < 0)
+        if ((*CompFunc) (base + i * size, base, arg) < 0)
         {
             current += size;
             swap(current, base + i * size, size);
@@ -228,8 +130,8 @@ void my_qsort(void* base, int nmemb, size_t size, int (*CompFunc)(const void*, c
 
     current += size;
 
-    my_qsort(base, counter, size, CompFunc);
-    my_qsort(current, nmemb - counter - 1, size, CompFunc);
+    my_qsort_r(base, counter, size, CompFunc, arg);
+    my_qsort_r(current, nmemb - counter - 1, size, CompFunc, arg);
 }
 
 void swap(void* elem1ptr, void* elem2ptr, size_t size)
@@ -250,21 +152,82 @@ void swap(void* elem1ptr, void* elem2ptr, size_t size)
     }
 }
 
-void Arguments(int argc, char** argv, char** input, char** output)
+int cmp(const void* struct1ptr, const void* struct2ptr, void* arg)
 {
-    if (argc == 1 || (argc != 3 && strcmp("--help", argv[1]) != 0))
+    assert(struct1ptr != NULL);
+    assert(struct2ptr != NULL);
+
+    const struct line struct1 = *(const struct line*) struct1ptr;
+    const struct line struct2 = *(const struct line*) struct2ptr;
+
+    const char* str1 = struct1.ptr;
+    const char* str2 = struct2.ptr;
+    const char step = *(char*) arg;
+
+    if (step == -1)
     {
-        printf("Enter --help to get info how the programm works");
-        exit(2);
+        str1 += struct1.length;
+        str2 += struct2.length;
     }
-    else if (strcmp("--help", argv[1]) == 0)
+
+    while(!(isalpha(*str1)))
+        str1 += step;
+
+    while(!(isalpha(*str2)))
+        str2 += step;
+
+    for( ; tolower(*str1) == tolower(*str2); str1 += step, str2 += step)
     {
-        printf("Please, enter two file names:\nFirst name of original text, second name of file to write into");
-        exit(1);
+        if (*str1 == '\0')
+            return 0;
     }
+    if (tolower(*str1) > tolower(*str2))
+        return 1;
     else
+        return -1;
+}
+
+int FileWrite (const char* file, struct line Strings[], int nlines)
+{
+    FILE* output = fopen(file, "a");
+
+    assert(output != NULL);
+    assert(Strings != NULL);
+
+    if (output == NULL)
     {
-        *input = argv[1];
-        *output = argv[2];
+        return FILERROR;
     }
+
+    for (int i = 0; i < nlines; i++)
+        fprintf(output, "%s\n", Strings[i].ptr);
+
+    fclose(output);
+
+    return NOERR;
+}
+
+int OriginWrite(const char* file, char* text, long size)
+{
+    FILE* output = fopen(file, "a");
+
+    assert(output != NULL);
+    assert(text != NULL);
+
+    if (output == NULL)
+    {
+        return FILERROR;
+    }
+
+    for (int i = 0; i < size; i++)
+    {
+        if (*(text + i) == '\0')
+            putc('\n', output);
+        else
+            putc(*(text + i), output);
+    }
+
+    fclose(output);
+
+    return NOERR;
 }

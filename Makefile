@@ -1,4 +1,4 @@
-CC := g++
+CC := g++ -Wno-pointer-arith
 SRC := main.cpp text-sort.cpp
 SRC_TEST := tests.cpp my_qsort.cpp text-sort.cpp
 DIR := C:\Users\USER\Documents\Onegin-sort
@@ -14,5 +14,3 @@ test: $(SRC_TEST)
 run: $(DIR)\main.exe
 	$(DIR)\main.exe
 
-clean:
-	rm -rf *.exe

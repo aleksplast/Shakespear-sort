@@ -6,7 +6,7 @@
 //! @param[in] fp Coefficient for input
 //! @return Size of the file in bytes
 //!--------------------------------
-long file_size(FILE *fp);
+long FileSize(FILE *fp);
 
 //!--------------------------------
 //! @brief Used for determining number of lines in text
@@ -24,7 +24,7 @@ int line_counter(char* text, long size);
 //! @param[out] Strings Pointer to the array of structures, where strings contains
 //! @return Number of error, if it happened
 //!--------------------------------
-int Strings_Separator(char* text, long size, int nlines, struct line** Strings);
+int Strings_Separator(struct poem* text, const char);
 
 //!--------------------------------
 //! @brief Compares two structures from left to right
@@ -32,15 +32,7 @@ int Strings_Separator(char* text, long size, int nlines, struct line** Strings);
 //! @param[out] struct1ptr Pointer to a second structure to compare
 //! @return Negative value if struct2ptr appears before str1 in lexicographical order, Zero if struct1ptr and struct2ptr compare equal, Positive value if struct1ptr appears after struct2ptr in lexicographical order.
 //!--------------------------------
-int cmp(const void* struct1ptr, const void* struct2ptr);
-
-//!--------------------------------
-//! @brief Compares two structures from right to left
-//! @param[out] struct1ptr Pointer to a first structure to compare
-//! @param[out] struct1ptr Pointer to a second structure to compare
-//! @return Negative value if struct2ptr appears before str1 in lexicographical order, Zero if struct1ptr and struct2ptr compare equal, Positive value if struct1ptr appears after struct2ptr in lexicographical order.
-//!--------------------------------
-int reverse_cmp(const void* struct1ptr, const void* struct2ptr);
+int cmp(const void* struct1ptr, const void* struct2ptr, void* arg);
 
 //!--------------------------------
 //! @brief Writes a sorted text into file
@@ -66,7 +58,7 @@ int OriginWrite(const char* file, char* text, long size);
 //! @param[in] text Structure to fill
 //! @return Number of error, if it happened
 //!--------------------------------
-int TextReader (const char* file, struct poem* text);
+int TextReader (const char* file, struct poem* text, const char* mode);
 
 //!--------------------------------
 //! @brief Sorts an array of any type
@@ -75,16 +67,7 @@ int TextReader (const char* file, struct poem* text);
 //! @param[in] size Size of the type of the array
 //! @param[out] CompFunc Comparing function
 //!--------------------------------
-void my_qsort(void* base, int nmemb, size_t size, int (*CompFunc)(const void*, const void*));
-
-//!--------------------------------
-//! @brief Handling of the arguments of command line
-//! @param[in] argc Number of command line arguments
-//! @param[in] argv Array of command line arguments
-//! @param[out] input Name of the input file
-//! @param[out] output Name of the output file
-//!--------------------------------
-void Arguments(int argc, char** argv, char** input, char** output);
+void my_qsort_r(void* base, int nmemb, size_t size, int (*CompFunc)(const void*, const void*, void*), void* arg);
 
 //!--------------------------------
 //! @brief Swaps two elements in the array
@@ -107,9 +90,10 @@ struct line
 //!--------------------------------
 struct poem
 {
-    char* ptr;  ///<Pointer to the start of the text
-    long size;  ///<Size of the text in bytes
-    int nlines; ///<Number of lines in text
+    char* ptr;              ///<Pointer to the start of the text
+    long size;              ///<Size of the text in bytes
+    int nlines;             ///<Number of lines in text
+    struct line* Strings;   ///<Array of structures, containing strings
 };
 
 //!--------------------------------
@@ -118,11 +102,14 @@ struct poem
 enum Errors
 {
     NOERR = 0,      ///<No errors occured
-    INPUTERR,       ///<Error with input file
-    INPUTMEMERR,    ///<Error with memory for input text
-    SEPARMEMERR,    ///<Error with memory for separated text
-    OUTPUTERR,      ///<Error with output file
-    OUTPUTORERR,    ///<Error with output of origin file
+    INPUTERROR,     ///<Error with input file
+    MEMERROR,       ///<Error with memory
+    FILERROR        ///<Error with file
 };
+
+//!--------------------------------
+//! @brief Used for preparation of step for compare
+//!--------------------------------
+void ChangeStep();
 
 #endif //TEXTSORT_H

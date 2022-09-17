@@ -12,33 +12,34 @@ int main(int argc, char* argv[])
     const char* alphabet = "Alphabet.txt";
     const char* origin = "Origin.txt";
 
-    char* output = NULL;
-    char* input = NULL;
+    const char* output = "Output.txt";
+    const char* input = "hamlet.txt";
 
-    int status = 0;
+    const char* mode = "r";
+    const char end = '\n';
+    char step = 1;
 
-    Arguments(argc, argv, &input, &output);
+    struct poem text = {NULL, 0, 0, NULL};
 
-    struct poem text = {NULL, 0, 0};
+    TextReader(input, &text, mode);
 
-    TextReader(input, &text);
+    Strings_Separator(&text, end);
 
-    struct line* Strings = NULL;
+    my_qsort_r(text.Strings, text.nlines, sizeof(text.Strings[0]), &cmp, &step);
 
-    Strings_Separator(text.ptr, text.size, text.nlines, &Strings);
+    FileWrite(output, text.Strings, text.nlines);
 
-    qsort(Strings, text.nlines, sizeof(Strings[0]), &cmp);
+    //change direction
 
-    FileWrite(output, Strings, text.nlines);
+    step = -1;
+    my_qsort_r(text.Strings, text.nlines, sizeof(text.Strings[0]), &cmp, &step);
 
-    my_qsort(Strings, text.nlines, sizeof(Strings[0]), &reverse_cmp);
-
-    FileWrite(output, Strings, text.nlines);
+    FileWrite(output, text.Strings, text.nlines);
 
     OriginWrite(output, text.ptr, text.size);
 
     free(text.ptr);
-    free(Strings);
+    free(text.Strings);
 
     return 0;
 }
